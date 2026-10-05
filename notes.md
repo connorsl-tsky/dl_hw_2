@@ -215,6 +215,7 @@ print(f"Test accuracy: {test_acc}")
    - https://www.tensorflow.org/api_docs/python/tf/keras/utils/split_dataset
    - data = np.random.random(size=(1000, 4))
    - left_ds, right_ds = keras.utils.split_dataset(data, left_size=0.8)
+   - update: use sklearn
    
 
 

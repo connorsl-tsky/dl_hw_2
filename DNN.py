@@ -3,39 +3,6 @@ import keras
 import pandas as pd
 from Preprocessing import preprocess_test_val
 
-"""
-// preprocessing
-input_shape = [X_train.shape[1]]
-model = tf.keras.Sequential([
-
-    tf.keras.layers.Dense(units=64, activation='relu',
-                          input_shape=input_shape),
-    tf.keras.layers.Dense(units=64, activation='relu'),
-    tf.keras.layers.Dense(units=1)
-])
-model.summary()
-
-model.compile(optimizer='adam', loss='mae') 
-
-losses = model.fit(X_train, y_train,
-                   validation_data=(X_val, y_val),
-                   batch_size=256, 
-                   epochs=15, 
-  )
-model.predict(X_val.iloc[0:3, :])
-loss_df = pd.DataFrame(losses.history)
-loss_df.loc[:,['loss','val_loss']].plot() # ah validation loss
-"""
-
-
-"""
-*early stop
-momentum - in optimizer
-learning rate - in optimizer
-*regularization
-*learning rate scheudler
-"""
-
 class DNN:
     def __init__(self, layers: list[int], activation: str, optimizer: keras.Optimizer, loss: keras.Loss, metrics: list[keras.Metric], batch: int, epochs: int, early_stop: bool, patience: int | None, regularizer: keras.Regularizer, lrs: bool, scheduler):
         # member vars
@@ -99,7 +66,7 @@ class DNN:
 
     def evaluate(self, test_x, test_y, callbacks: bool=False):
         callback = []
-        if callback:
+        if callbacks:
             callback = self.callbacks
         return self.model.evaluate(test_x, test_y, callbacks=callback)
         

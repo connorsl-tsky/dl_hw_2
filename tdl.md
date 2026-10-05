@@ -16,11 +16,11 @@
                    - [x] from notes - ^
                    - [x] from online - ^. i think it's good enough. 
        - [ ] develop the models
-             - [x] develop preprocessing and options for preprocessing
-                   - NOTE - so the options are standardization: 1) /255, 2) use standardization/normalization layer, and for data augmentation are to 1) not use it, or 2) use it, either way they aren't covered by the preprocessing functions. - 10/5/26 1158am
-             - [ ] develop DNN
+             - [x] develop preprocessing and options for preprocessing - 10/5/26 1158am
+                   - NOTE - so the options are standardization: 1) /255, 2) use standardization/normalization layer, and for data augmentation are to 1) not use it, or 2) use it, either way they aren't covered by the preprocessing functions. 
+             - [x] develop DNN - 10/5/26 436pm
                    - NOTE - we need to template out all the hyperparameters, perhaps add options for data augmentation and normalization
-             - [ ] develop CNN
+             - [x] develop CNN - 10/5/26 529pm
              - [ ] develop VGG
              - [ ] develop ResNet
        - [ ] design and develop the tests and output results

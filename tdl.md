@@ -1,0 +1,38 @@
+ - [x] notes on hw to create tdl - 10/4/26
+ - [ ] data
+       - [x] download datasets - 10/4/26
+       - [x] look at and answer basic questions about datasets. ask basic questions - 10/4/26 637pm
+       - [ ] do some research on preprocessing options for the data
+             - [x] check notes first - 10/4/26 644pm 
+             - [x] find other online - 10/4/26 726pm
+       - [x] answer the questions in word doc - 10/4/26 744pm
+ - [ ] models
+       - [x] virtual environment and download np, pd, tensorflow, and matplotlib - 10/4/26 750pm
+             - [x] and record versions - ^
+       - [ ] design the models, isolate the hyperparameters (including loss function)
+             - [x] research general pseudo for each model - DNN, ConvNet, VGG, ResNet18 - 10/4/26 822pm
+             - [x] determine possible layers, optimizers, the loss function, how to split the data, metrics, anything else? early stop, activation functions, regularization - 10/4/26 841pm
+             - [x] do research onto each of the models for what techniques can improve accuracy
+                   - [x] from notes - ^
+                   - [x] from online - ^. i think it's good enough. 
+       - [ ] develop the models
+             - [ ] develop preprocessing and options for preprocessing
+             - [ ] develop the models
+       - [ ] design and develop the tests and output results
+             - [ ] i think just final results to a text file
+             - [ ] and a submission.csv
+             - [ ] plot auc-roc
+             - [ ] do we want to keep the same random seed? for every test run? to test actual performance comparison? that's not a bad idea...
+             - [ ] name to name test, multiple runs, in the code itself output averages and such, perhaps also to a file so we don't have to go into the testing files, perhaps sectioning off with directories, and in the name of the file we output the param being tested, and at the top of each file we output the total params so each model class should have a print function perhaps. well it should return a string
+        - [ ] param testing
+              - [ ] list of things to test
+              - [ ] what to start with?
+- [ ] submission
+      - [ ] ensure 85% accuracy
+      - [ ] finish questions
+      - [ ] submission.csv
+      - [ ] submit to kaggle
+      - [ ] zip file with questions/report, prompts, all code and one model weights - sltusky_connor_hw2.zip
+
+
+

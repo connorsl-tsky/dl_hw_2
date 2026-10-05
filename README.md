@@ -9,3 +9,4 @@ dependenecies
  - tensorflow - 2.21.0
  - matplotlib - 3.11.2
  - keras - 3.15.1
+ - scikit-learn - 1.9.1

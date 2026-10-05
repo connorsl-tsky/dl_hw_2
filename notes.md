@@ -5,6 +5,13 @@
 
 # models
 
+
+## dev
+
+ - how to use tfdata sets
+   - fark this we use sklearn
+   - good choice
+
 ## DNN
 https://www.geeksforgeeks.org/deep-learning/implementing-neural-networks-using-tensorflow/
 feed forward neural network

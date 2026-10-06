@@ -3,6 +3,167 @@
  - see if there are any NaNs in dataframe - train.isnull().any(), .any().any(), "True" in train.isnull().any().to_string()
  - get versions of packages - pip freeze and perhaps grep
 
+
+# testing
+
+## list
+
+ - DNN
+   - learning rate
+   - optimizer
+   - optimizer parameters
+   - scheduler
+   - regularizer
+   - layers
+   - batches
+   - epoches
+   - patience
+ - CNN
+   - optimizer
+   - optimizer params
+   - scheduler
+   - regularizer
+   - filters
+   - kernel size
+   - strides
+   - padding
+   - dense units
+   - batch
+   - epochs
+   - patience
+   - structure?
+ - VGG
+   - optimizer
+   - optimizer params
+   - scheduler
+   - regularizer
+   - batch
+   - epochs
+   - patience
+ - ResNet
+   - optimizer
+   - optimizer params
+   - scheduler
+   - regularizer
+   - batch
+   - epochs
+   - patience
+
+and hopefully all these hyperparams carry over a bit across each run
+
+
+## what do i want
+ - how long it takes
+ - history of metrics + loss
+ - all params
+ - submission.csv
+ - plot auc-roc
+ - same random seed
+ - name of test for file + run
+ - dir for each test of same name
+ - be able to run multiple times
+ - final metrics
+ - plotted loss
+
+## design
+ - how long it takes
+   - time.time
+ - history of metrics + loss
+   - that should just be loss.history, and looping through it and printing it
+ - all params
+   - save to dict and print
+ - submission.csv
+    ids = test_x['id'].to_numpy()
+    test_x = test_x.drop(columns=['id'])
+    predictions = np.array(self.model.predict(test_x)) # this returns an array
+    predictions = np.reshape(predictions, (1, predictions.shape[0]))[0]
+
+    
+    ids, predictions = dnn1.test(test)
+    predictions = dnn1.model.predict(x_test)
+    predictions = np.reshape(predictions, (1, predictions.shape[0]))[0]
+    predictions = (predictions * y_std) + y_mean # unscale predictions
+    output(ids, predictions, "dnn1_submission.csv")
+    dnn1.model.save('weights.keras')
+    
+    return
+
+def output(ids, labels, filename):
+    outdf = pd.DataFrame({"id": ids, "TARGET_deathRate": labels})
+    outdf.to_csv(filename, index=False)
+    return
+
+
+ - plot auc-roc
+   - https://www.geeksforgeeks.org/machine-learning/auc-roc-curve/
+   - TPR on y and FPR on x
+from sklearn.metrics import roc_curve, auc
+plt.figure(figsize=(7, 5))
+
+for model in ['Logistic', 'RandomForest']:
+    fpr, tpr, _ = roc_curve(test_df['True'], test_df[model])
+    roc_auc = auc(fpr, tpr)
+    plt.plot(fpr, tpr, label=f'{model} (AUC = {roc_auc:.2f})')
+
+plt.plot([0, 1], [0, 1], 'r--', label='Random Guess')
+
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC Curves for Two Models')
+plt.legend()
+plt.show()
+
+https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc.html
+
+i guess micro averaging might be better? idk
+i just need to display it, so yeah i can do that. and maybe compare the auc there with the one i get from the model. just in case
+
+so i would have to test this TODO
+
+ - same random seed
+   - random_state param in train_test_split
+   - https://stackoverflow.com/questions/56166130/setting-seed-on-train-test-split-sklearn-python
+ - name of test for file + run
+   - with open(dir/name_run.txt, 'w') as file
+ - dir for each test of same name
+   - os.mkdir('dir')
+ - be able to run multiple times
+   - for loop
+ - final metrics
+   - evaluate on test and print
+ - plotted loss
+
+dnn1_loss = dnn1.history.history['loss']
+dnn2_loss = dnn2.history.history['loss']
+dnn3_loss = dnn3.history.history['loss']
+dnn4_loss = dnn4.history.history['loss']
+dnn5_loss = dnn5.history.history['loss']
+plot(lr_loss, dnn1_loss, dnn2_loss, dnn3_loss, dnn4_loss, dnn5_loss)
+
+lr_epochs = range(1, len(lr_loss)+1)
+dnn1_epochs = range(1, len(dnn1_loss)+1)
+dnn2_epochs = range(1, len(dnn2_loss)+1)
+dnn3_epochs = range(1, len(dnn3_loss)+1)
+dnn4_epochs = range(1, len(dnn4_loss)+1)
+dnn5_epochs = range(1, len(dnn5_loss)+1)
+plt.plot(lr_epochs, lr_loss, label="Linear Regression")
+plt.plot(dnn1_epochs, dnn1_loss, label="DNN1 - 8 - Output")
+plt.plot(dnn2_epochs, dnn2_loss, label="DNN2 - 16 - 8 - Output")
+plt.plot(dnn3_epochs, dnn3_loss, label="DNN3 - 16 - 8 - 4 - Output")
+plt.plot(dnn4_epochs, dnn4_loss, label="DNN4 - 30 - 16 - 8 - 4 - Output")
+plt.plot(dnn5_epochs, dnn5_loss, label="DNN5 - 8 - 8 - Output")
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.legend()
+plt.show()
+
+ - change testing param
+   - probably just do it manually
+
+params - model, name, params, num_runs, data
+
+
+
 # models
 
 
@@ -134,6 +295,22 @@ https://www.geeksforgeeks.org/computer-vision/vgg-net-architecture-explained/
 
 yeah just follow this guide. it's a special kind of CNN
 
+https://github.com/matin-ghorbani/VGGNet-PyTorch/tree/main
+the vgg layers
+
+https://medium.com/@amir_hf8/implementing-vgg13-for-mnist-dataset-in-tensorflow-abc1460e2b93
+padding is 'same'
+
+maybe we should do not vgg19 but instead vgg11 or something
+something a lot simpler for computation
+
+let's see if that simplifies things
+we can also try to see how the dimensinos change with each layer, yeah?
+
+https://stackoverflow.com/questions/61746918/what-are-the-minimum-input-sizes-for-vgg-16-and-resnet-and-can-i-change-them
+this guy flattens before the dense layers, and has the final layer be softmax hm
+
+
 ## ResNet18
 
 https://www.geeksforgeeks.org/deep-learning/resnet18-from-scratch-using-pytorch/
@@ -151,6 +328,15 @@ yeah, i'm not sure how good it is but whatever
 
 https://www.geeksforgeeks.org/computer-vision/image-classification-using-resnet/
 this is probably better
+
+import tensorflow as tf
+from tensorflow.keras.applications import ResNet50
+from tensorflow.keras.datasets import cifar10
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.utils import to_categorical
 
 // Load CIFAR-10 dataset
 (x_train, y_train), (x_test, y_test) = cifar10.load_data()

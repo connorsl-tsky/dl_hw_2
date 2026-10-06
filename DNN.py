@@ -100,6 +100,7 @@ if __name__ == "__main__":
     layers = [128]
     batch=128
     epochs=100
+    patience=15
     dnn = DNN(
         layers=layers,
         activation="relu",
@@ -116,7 +117,7 @@ if __name__ == "__main__":
         batch=batch,
         epochs=epochs,
         early_stop=True,
-        patience=15,
+        patience=patience,
         lrs=True,
         scheduler=scheduler,
         regularizer=l1

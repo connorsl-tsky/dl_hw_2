@@ -20,7 +20,7 @@ def train_val_split(data: pd.DataFrame, val_pct: float, shuffle: bool) -> tuple[
     train, val = sk.train_test_split(data, test_size=val_pct, shuffle=shuffle)
     return train, val
 
-def reshape_for_conv(data: pd.DataFrame) -> pd.DataFrame:
+def reshape_for_conv(data: np.ndarray) -> np.ndarray:
     return np.reshape(data, (data.shape[0], 28, 28, 1))
 
 def preprocess_test_val(data: pd.DataFrame, stdz: bool, test_pct: float, val_pct: float, shuffle: bool) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:

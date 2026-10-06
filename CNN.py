@@ -1,47 +1,7 @@
-"""
-(train_images, train_labels), (test_images, test_labels) = cifar10.load_data()
-train_images, test_images = train_images / 255.0, test_images / 255.0
-train_labels = to_categorical(train_labels, 10)
-test_labels = to_categorical(test_labels, 10)
-
-model = models.Sequential([
-    layers.Conv2D(32, (3, 3), activation='relu', input_shape=(32, 32, 3)),
-    layers.MaxPooling2D(pool_size=(2, 2)),
-    layers.Flatten(),
-    layers.Dense(128, activation='relu'),
-    layers.Dense(10, activation='softmax')
-])
-
-model.compile(optimizer='adam',
-              loss='categorical_crossentropy',
-              metrics=['accuracy'])
-
-history = model.fit(train_images, train_labels, epochs=10, batch_size=64, validation_data=(test_images, test_labels))
-
-test_loss, test_acc = model.evaluate(test_images, test_labels)
-
-plt.plot(history.history['accuracy'], label='Training Accuracy')
-plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
-plt.title('Model Accuracy')
-plt.xlabel('Epoch')
-plt.ylabel('Accuracy')
-plt.legend(loc='lower right')
-plt.show()
-
-plt.plot(history.history['loss'], label='Training Loss')
-plt.plot(history.history['val_loss'], label='Validation Loss')
-plt.title('Model Loss')
-plt.xlabel('Epoch')
-plt.ylabel('Loss')
-plt.legend(loc='upper right')
-plt.show()
-
-"""
-
-
 import keras
 import pandas as pd
 from Preprocessing import preprocess_test_val, reshape_for_conv
+import numpy as np
 
 class CNN:
     def __init__(self, filters: int, kernel_size: tuple[int], strides: tuple[int], padding: str, activation: str, pool_size: tuple[int], dense_units: int, optimizer: keras.Optimizer, loss: keras.Loss, metrics: list[keras.Metric], batch: int, epochs: int, early_stop: bool, patience: int | None, regularizer: keras.Regularizer, lrs: bool, scheduler):
@@ -115,7 +75,7 @@ class CNN:
         self.model.add(keras.layers.Dense(units=10)) # 10 for the digits
         return
     
-    def train(self, train_x, train_y, val_x, val_y):
+    def train(self, train_x: np.ndarray, train_y, val_x: np.ndarray, val_y):
         self.loss = self.model.fit(
             train_x, 
             train_y, 
@@ -127,7 +87,7 @@ class CNN:
         )
         return self.loss
 
-    def evaluate(self, test_x, test_y, callbacks: bool=False):
+    def evaluate(self, test_x: np.ndarray, test_y, callbacks: bool=False):
         callback = []
         if callbacks:
             callback = self.callbacks
@@ -172,6 +132,7 @@ if __name__ == "__main__":
     dense_units=128
     batch=128
     epochs=100
+    patience=15
     cnn = CNN(
         filters=filters,
         kernel_size=kernel_size,
@@ -193,7 +154,7 @@ if __name__ == "__main__":
         batch=batch,
         epochs=epochs,
         early_stop=True,
-        patience=15,
+        patience=patience,
         lrs=True,
         scheduler=scheduler,
         regularizer=l1

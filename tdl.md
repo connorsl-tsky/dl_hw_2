@@ -21,14 +21,14 @@
              - [x] develop DNN - 10/5/26 436pm
                    - NOTE - we need to template out all the hyperparameters, perhaps add options for data augmentation and normalization
              - [x] develop CNN - 10/5/26 529pm
-             - [ ] develop VGG
-             - [ ] develop ResNet
+             - [x] develop VGG - 10/6/26 415pm
+             - [x] develop ResNet - 10/6/26 435pm
        - [ ] design and develop the tests and output results
-             - [ ] i think just final results to a text file
-             - [ ] and a submission.csv
-             - [ ] plot auc-roc
-             - [ ] do we want to keep the same random seed? for every test run? to test actual performance comparison? that's not a bad idea...
-             - [ ] name to name test, multiple runs, in the code itself output averages and such, perhaps also to a file so we don't have to go into the testing files, perhaps sectioning off with directories, and in the name of the file we output the param being tested, and at the top of each file we output the total params so each model class should have a print function perhaps. well it should return a string
+             - [ ] list what needs to be tested and for what models
+             - [ ] list what we want outputted
+             - [ ] design
+             - NOTES: i think just final results to a text file, and a submission.csv so i don't do it at the last minute, plot auc-roc, do we want to keep the same random seed? for every test run? to test actual performance comparison? that's not a bad idea..., name to name test, multiple runs, in the code itself output averages and such, perhaps also to a file so we don't have to go into the testing files, perhaps sectioning off with directories, and in the name of the file we output the param being tested, and at the top of each file we output the total params so each model class should have a print function perhaps. well it should return a string
+             - [ ] develop
         - [ ] param testing
               - [ ] list of things to test
               - [ ] what to start with?

@@ -118,7 +118,7 @@ https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc.html
 i guess micro averaging might be better? idk
 i just need to display it, so yeah i can do that. and maybe compare the auc there with the one i get from the model. just in case
 
-so i would have to test this TODO
+got it in DNN.py
 
  - same random seed
    - random_state param in train_test_split

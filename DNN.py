@@ -2,6 +2,10 @@
 import keras
 import pandas as pd
 from Preprocessing import preprocess_test_val
+import numpy as np
+from sklearn.metrics import RocCurveDisplay
+import matplotlib.pyplot as plt
+
 
 class DNN:
     def __init__(self, layers: list[int], activation: str, optimizer: keras.Optimizer, loss: keras.Loss, metrics: list[keras.Metric], batch: int, epochs: int, early_stop: bool, patience: int | None, regularizer: keras.Regularizer, lrs: bool, scheduler):
@@ -112,7 +116,6 @@ if __name__ == "__main__":
             keras.metrics.F1Score(),
             keras.metrics.Precision(),
             keras.metrics.Recall(),
-            # keras.metrics.IoU(),
         ],
         batch=batch,
         epochs=epochs,
@@ -125,12 +128,53 @@ if __name__ == "__main__":
 
     loss = dnn.train(train_x, train_y, val_x, val_y)
     print("LOSS", loss.history)
-    l, acc, auc, f1, prec, rec = dnn.evaluate(test_x, test_y)
-    print("L", l)
-    print("ACC", acc)
-    print("AUC", auc)
-    print("f1", f1)
-    print("PREC", prec)
-    print("REC", rec)
-    # print("IOU", iou)
+    # l, acc, auc, f1, prec, rec = dnn.evaluate(test_x, test_y)
+    # print("L", l)
+    # print("ACC", acc)
+    # print("AUC", auc)
+    # print("f1", f1)
+    # print("PREC", prec)
+    # print("REC", rec)
+
+    yhat = np.array(dnn.model.predict(test_x))
+    print("YHAT", yhat)
+    print("YHAT shape", yhat.shape)
+
+    display = RocCurveDisplay.from_predictions(
+            test_y.ravel(),
+            yhat.ravel(),
+            name="micro-average OvR",
+            curve_kwargs=dict(color="darkorange"),
+            plot_chance_level=True,
+            despine=True,
+        )
+    _ = display.ax_.set(
+        xlabel="False Positive Rate",
+        ylabel="True Positive Rate",
+        title="Title",
+    )
+    plt.show()
+    # got it
+
+
+    """
+    auc-roc curve
+    from sklearn.metrics import RocCurveDisplay
+    score is result from predictions
+    onehot_test is ytest iwth the to_classifier as one-hot encoding
+
+    display = RocCurveDisplay.from_predictions(
+        y_onehot_test.ravel(),
+        y_score.ravel(),
+        name="micro-average OvR",
+        curve_kwargs=dict(color="darkorange"),
+        plot_chance_level=True,
+        despine=True,
+    )
+    _ = display.ax_.set(
+        xlabel="False Positive Rate",
+        ylabel="True Positive Rate",
+        title="Micro-averaged One-vs-Rest\nReceiver Operating Characteristic",
+    )
     
+    """

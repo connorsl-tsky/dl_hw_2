@@ -11,20 +11,27 @@ def separate_labels(data: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
 def standardize(data: pd.DataFrame) -> pd.DataFrame:
     return data / 255.0
 
-def train_test_val_split(data: pd.DataFrame, test_pct: float, val_pct: float, shuffle: bool) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def train_test_val_split(data: pd.DataFrame, test_pct: float, val_pct: float, shuffle: bool, random: int | None) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    if random is not None:
+        train, test = sk.train_test_split(data, test_size=test_pct, shuffle=shuffle, random_state=random)
+        train, val = sk.train_test_split(train, test_size=val_pct/(1-test_pct), shuffle=shuffle, random_state=random)
+        return train, val, test
     train, test = sk.train_test_split(data, test_size=test_pct, shuffle=shuffle)
     train, val = sk.train_test_split(train, test_size=val_pct/(1-test_pct), shuffle=shuffle)
     return train, val, test
 
-def train_val_split(data: pd.DataFrame, val_pct: float, shuffle: bool) -> tuple[pd.DataFrame, pd.DataFrame]:
+def train_val_split(data: pd.DataFrame, val_pct: float, shuffle: bool, random: int | None) -> tuple[pd.DataFrame, pd.DataFrame]:
+    if random is not None:
+        train, val = sk.train_test_split(data, test_size=val_pct, shuffle=shuffle, random=random)
+        return train, val
     train, val = sk.train_test_split(data, test_size=val_pct, shuffle=shuffle)
     return train, val
 
 def reshape_for_conv(data: np.ndarray) -> np.ndarray:
     return np.reshape(data, (data.shape[0], 28, 28, 1))
 
-def preprocess_test_val(data: pd.DataFrame, stdz: bool, test_pct: float, val_pct: float, shuffle: bool) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    train, val, test = train_test_val_split(data=data, test_pct=test_pct, val_pct=val_pct, shuffle=shuffle)
+def preprocess_test_val(data: pd.DataFrame, stdz: bool, test_pct: float, val_pct: float, shuffle: bool, random: int | None = None) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    train, val, test = train_test_val_split(data=data, test_pct=test_pct, val_pct=val_pct, shuffle=shuffle, random=random)
     train_x, train_y = separate_labels(train)
     val_x, val_y = separate_labels(val)
     test_x, test_y = separate_labels(test)
@@ -34,8 +41,8 @@ def preprocess_test_val(data: pd.DataFrame, stdz: bool, test_pct: float, val_pct
         test_x = standardize(test_x)
     return train_x, train_y, val_x, val_y, test_x, test_y
 
-def preprocess_val(data: pd.DataFrame, stdz: bool, val_pct: float, shuffle: bool) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    train, val = train_val_split(data=data, val_pct=val_pct, shuffle=shuffle)
+def preprocess_val(data: pd.DataFrame, stdz: bool, val_pct: float, shuffle: bool, random: int | None = None) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    train, val = train_val_split(data=data, val_pct=val_pct, shuffle=shuffle, random=random)
     train_x, train_y = separate_labels(train)
     val_x, val_y = separate_labels(val)
     if stdz:

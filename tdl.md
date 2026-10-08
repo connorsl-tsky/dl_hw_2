@@ -1,21 +1,21 @@
  - [x] notes on hw to create tdl - 10/4/26
- - [ ] data
+ - [x] data
        - [x] download datasets - 10/4/26
        - [x] look at and answer basic questions about datasets. ask basic questions - 10/4/26 637pm
-       - [ ] do some research on preprocessing options for the data
+       - [x] do some research on preprocessing options for the data
              - [x] check notes first - 10/4/26 644pm 
              - [x] find other online - 10/4/26 726pm
        - [x] answer the questions in word doc - 10/4/26 744pm
  - [ ] models
        - [x] virtual environment and download np, pd, tensorflow, and matplotlib - 10/4/26 750pm
              - [x] and record versions - ^
-       - [ ] design the models, isolate the hyperparameters (including loss function)
+       - [x] design the models, isolate the hyperparameters (including loss function)
              - [x] research general pseudo for each model - DNN, ConvNet, VGG, ResNet18 - 10/4/26 822pm
              - [x] determine possible layers, optimizers, the loss function, how to split the data, metrics, anything else? early stop, activation functions, regularization - 10/4/26 841pm
              - [x] do research onto each of the models for what techniques can improve accuracy
                    - [x] from notes - ^
                    - [x] from online - ^. i think it's good enough. 
-       - [ ] develop the models
+       - [x] develop the models
              - [x] develop preprocessing and options for preprocessing - 10/5/26 1158am
                    - NOTE - so the options are standardization: 1) /255, 2) use standardization/normalization layer, and for data augmentation are to 1) not use it, or 2) use it, either way they aren't covered by the preprocessing functions. 
              - [x] develop DNN - 10/5/26 436pm
@@ -23,15 +23,18 @@
              - [x] develop CNN - 10/5/26 529pm
              - [x] develop VGG - 10/6/26 415pm
              - [x] develop ResNet - 10/6/26 435pm
-       - [ ] design and develop the tests and output results
-             - [ ] list what needs to be tested and for what models
-             - [ ] list what we want outputted
-             - [ ] design
+       - [x] design and develop the tests and output results
+             - [x] list what needs to be tested and for what models
+             - [x] list what we want outputted
+             - [x] design
              - NOTES: i think just final results to a text file, and a submission.csv so i don't do it at the last minute, plot auc-roc, do we want to keep the same random seed? for every test run? to test actual performance comparison? that's not a bad idea..., name to name test, multiple runs, in the code itself output averages and such, perhaps also to a file so we don't have to go into the testing files, perhaps sectioning off with directories, and in the name of the file we output the param being tested, and at the top of each file we output the total params so each model class should have a print function perhaps. well it should return a string
-             - [ ] develop
+             - [x] develop - 10/7/26 130pm
         - [ ] param testing
-              - [ ] list of things to test
-              - [ ] what to start with?
+              - [ ] DNN
+              - NOTE: before switching models, make sure export_stats works with tehm
+              - [ ] CNN
+              - [ ] VGG
+              - [ ] ResNet
 - [ ] submission
       - [ ] ensure 85% accuracy
       - [ ] finish questions

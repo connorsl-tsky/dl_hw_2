@@ -85,3 +85,8 @@ if __name__ == "__main__":
     print("\n\nTEST Y")
     print(tey)
     print(tey.shape)
+
+    arr = np.array([[1,1,1],[2,2,2],[3,3,3],[4,4,4],[5,5,5],[6,6,6],[7,7,7],[8,8,8]])
+    train, test = sk.train_test_split(arr, test_size=.5, shuffle=True, random_state=1)
+    print("TRAIN", train)
+    print("TEST", test)

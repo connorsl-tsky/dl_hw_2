@@ -90,9 +90,7 @@ class ResNet:
             print("DNN: NO LEARNING RATE SCHEDULER OR SCHEDULER")
 
         # build model
-        self.base_model = ResNet50(weights='imagenet', 
-                      include_top=False, 
-                      input_shape=(32, 32, 3))
+        self.base_model = ResNet50(weights='imagenet', include_top=False, input_shape=(32, 32, 3))
 
         self.base_model.trainable = False
         self.model = keras.models.Sequential()

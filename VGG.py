@@ -9,12 +9,15 @@ import pandas as pd
 from Preprocessing import preprocess_test_val, reshape_for_conv
 import numpy as np
 import tensorflow as tf
+from test import export_stats
+import copy
 
 class VGG:
-    def __init__(self, optimizer: keras.Optimizer, loss: keras.Loss, metrics: list[keras.Metric], batch: int, epochs: int, early_stop: bool, patience: int | None, lrs: bool, scheduler):
+    def __init__(self, optimizer: keras.Optimizer, loss: keras.Loss, metrics: list[keras.Metric], batch: int, epochs: int, early_stop: bool, patience: int | None, lrs: bool, scheduler, regularizer: keras.Regularizer):
         # member vars
         self.batch = batch
         self.epochs = epochs
+        self.regularizer = regularizer
 
         # callbacks
         self.callbacks = []
@@ -27,7 +30,7 @@ class VGG:
             )
             self.callbacks.append(early_stop_callback)
         else:
-            print("DNN: NO EARLY STOP OR PATIENCE")
+            print("VGG: NO EARLY STOP OR PATIENCE")
         if lrs and scheduler:
             lrs_callback = keras.callbacks.LearningRateScheduler(
                 schedule = scheduler,
@@ -35,7 +38,7 @@ class VGG:
             )
             self.callbacks.append(lrs_callback)
         else:
-            print("DNN: NO LEARNING RATE SCHEDULER OR SCHEDULER")
+            print("VGG: NO LEARNING RATE SCHEDULER OR SCHEDULER")
 
         # build model
         self.model = keras.models.Sequential()
@@ -75,8 +78,8 @@ class VGG:
 
         # FC
         self.model.add(keras.layers.Flatten())
-        self.model.add(keras.layers.Dense(units=4096,activation='relu',))
-        self.model.add(keras.layers.Dense(units=4096,activation='relu',))
+        self.model.add(keras.layers.Dense(units=4096,activation='relu', kernel_regularizer=self.regularizer))
+        self.model.add(keras.layers.Dense(units=4096,activation='relu', kernel_regularizer=self.regularizer))
         self.model.add(keras.layers.Dense(units=1000,activation='softmax',))
         
         self.model.add(keras.layers.Dense(units=10)) # 10 for the digits
@@ -103,49 +106,45 @@ class VGG:
     
 
 
-if __name__ == "__main__":
-    data = pd.read_csv("train.csv")
-    print("PREPROCESSING")
-    train_x, train_y, val_x, val_y, test_x, test_y = preprocess_test_val(data, stdz=True, test_pct=.2, val_pct=.2, shuffle=True)
+def build_model(params: dict, i: int):
+    """
+    params = {
+        "learning_rate": 0.001,
+        "optimizer": {
+            "name": "adam",
+            "optimizer": keras.optimizers.Adam(
+                learning_rate = 0.001,
+            ),
+        },
+        "loss": {
+            "name": "cce",
+            "loss": keras.losses.CategoricalCrossentropy(),
+        },
+        "scheduler": {
+            "name": "no change",
+            "scheduler": lambda epoch, loss : loss,
+        },
+        "regularizer": {
+            "name": "l2",
+            "regularizer": keras.regularizers.l2()
+        },
+        "batch_size": 1024,
+        "epochs": 400,
+        "patience": 15,
+    }
+    """
 
-    print("TO CATEGORICAL")
-    train_y = keras.utils.to_categorical(train_y, 10)
-    val_y = keras.utils.to_categorical(val_y, 10)
-    test_y = keras.utils.to_categorical(test_y, 10)
+    optimizer = assign_params_nested(params, "optimizer", i)
+    loss = assign_params_nested(params, "loss", i)
+    batch = assign_param(params, "batch_size", i)
+    epochs = assign_param(params, "epochs", i)
+    patience = assign_param(params, "patience", i)
+    scheduler = assign_params_nested(params, "scheduler", i)
+    regularizer = assign_params_nested(params, "regularizer", i)
 
-    print("RESHAPE FOR CONV")
-    train_x = reshape_for_conv(train_x)
-    val_x = reshape_for_conv(val_x)
-    test_x = reshape_for_conv(test_x)
-
-    print("RESIZE IMAGE")
-    train_x = tf.image.resize(train_x, (32, 32)).numpy()
-    val_x   = tf.image.resize(val_x,   (32, 32)).numpy()
-    test_x  = tf.image.resize(test_x,  (32, 32)).numpy()
-
-
-    learning_rate = 0.1
-    beta_1 = 0.9
-    beta_2 = 0.999
-    adam = keras.optimizers.Adam(
-        learning_rate=learning_rate,
-        beta_1=beta_1,
-        beta_2=beta_2
-    )
-
-    cce = keras.losses.CategoricalCrossentropy()
-
-    def scheduler(epoch, loss): 
-        return loss
-
-    l1 = keras.regularizers.l1(0.01)
-
-    batch=128
-    epochs=100
-    patience=15
     vgg = VGG(
-        optimizer=adam,
-        loss=cce,
+        optimizer=optimizer,
+        loss=loss,
         metrics=[
             keras.metrics.CategoricalAccuracy(),
             keras.metrics.AUC(),
@@ -160,48 +159,100 @@ if __name__ == "__main__":
         patience=patience,
         lrs=True,
         scheduler=scheduler,
+        regularizer=regularizer
     )
 
+    return vgg
+
+
+def assign_param(params: dict, key: str, i: int):
+    """ 
+    see build_model
     """
-    okay i'm getting an issue with this what the hell
-    'VGG11': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
-    ah with each max, the input dimensions divide by 2
-    we have 5 maxes
-    it's 28
-    14,7,3,1 and boom, not enough. 
-    hm. 
-    whta's the minimum it needs to be
-    1,2,4,8,16,32
-    # 32
-    # i'm doing research, it's not working, i'm gonna ask ai fuck it
-    # """
-    # print("train_x", train_x.shape)
-    # conv1 = keras.layers.Conv2D(filters=64,kernel_size=(3,3),activation='relu',padding='same')(train_x)
-    # print("conv1", conv1.shape)
-    # max1 = keras.layers.MaxPool2D(pool_size=(2,2),strides=2)(conv1)
-    # print("max1", max1.shape)
-    # conv2 = keras.layers.Conv2D(filters=128,kernel_size=(3,3),activation='relu',padding='same')(max1)
-    # print("conv2", conv2.shape)
-    # max2 = keras.layers.MaxPool2D(pool_size=(2,2),strides=2)(conv2)
-    # print("max2", max2.shape)
-    # max3 = keras.layers.MaxPool2D(pool_size=(2,2),strides=2)(max2)
-    # print("max2", max3.shape)
+    if isinstance(params[key], list):
+        return params[key][i]
+    else:
+        return params[key]
 
+def assign_params_nested(params: dict, key: str, i: int):
+    """
+    see build_model
+    """
+    if isinstance(params[key], list):
+        return params[key][i][key]
+    else:
+        return params[key][key]
 
+def input_params_to_output_params(params: dict, i: int):
+    out = copy.deepcopy(params)
+    for k, v in out.items():
+        if isinstance(out[k], list):
+            out[k] = out[k][i]
+        if isinstance(out[k], dict):
+            out[k] = out[k]["name"]
+    return out
+
+def test_param():
+    data = pd.read_csv("train.csv")
+    random=1
+    train_x, train_y, val_x, val_y, test_x, test_y = preprocess_test_val(data, stdz=True, test_pct=.2, val_pct=.2, shuffle=True, random=random)
+
+    train_y = keras.utils.to_categorical(train_y, 10)
+    val_y = keras.utils.to_categorical(val_y, 10)
+    test_y = keras.utils.to_categorical(test_y, 10)
+
+    train_x = reshape_for_conv(train_x)
+    val_x = reshape_for_conv(val_x)
+    test_x = reshape_for_conv(test_x)
+
+    train_x = tf.image.resize(train_x, (32, 32)).numpy()
+    val_x   = tf.image.resize(val_x,   (32, 32)).numpy()
+    test_x  = tf.image.resize(test_x,  (32, 32)).numpy()
     
 
-    print("train x", train_x.shape)
-    print("train y", train_y.shape)
-    print("val x", val_x.shape)
-    print("val y", val_y.shape)
-    loss = vgg.train(train_x, train_y, val_x, val_y)
-    print("LOSS", loss.history)
-    l, acc, auc, f1, prec, rec = vgg.evaluate(test_x, test_y)
-    print("L", l)
-    print("ACC", acc)
-    print("AUC", auc)
-    print("f1", f1)
-    print("PREC", prec)
-    print("REC", rec)
-    # print("IOU", iou)
+    data = {
+        "train_x": train_x,
+        "train_y": train_y,
+        "val_x": val_x,
+        "val_y": val_y,
+        "test_x": test_x,
+        "test_y": test_y
+    }
+
+    params = {
+        "learning_rate": 0.001,
+        "optimizer": {
+            "name": "adam",
+            "optimizer": keras.optimizers.Adam(
+                learning_rate = 0.001,
+            ),
+        },
+        "loss": {
+            "name": "cce",
+            "loss": keras.losses.CategoricalCrossentropy(),
+        },
+        "scheduler": {
+            "name": "no change",
+            "scheduler": lambda epoch, loss : loss,
+        },
+        "regularizer": {
+            "name": "l2",
+            "regularizer": keras.regularizers.l2()
+        },
+        "batch_size": 1024,
+        "epochs": 400,
+        "patience": 15,
+    }
+
     
+    test_key = "filters"
+
+    for i in range(len(params[test_key])):
+        cnn = build_model(params)
+        output_params = input_params_to_output_params(params)
+        export_stats(model=cnn, name=f"CNN_FILTER_{params[test_key][i]}", params=output_params, num_runs=5, data=data, random=random, output_precision=5)
+    return
+
+
+if __name__ == "__main__":
+    print("hello world")

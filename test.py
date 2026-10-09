@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import sklearn.preprocessing as skpre
 
 
-def export_stats(model, name: str, params: dict, num_runs: int, data: dict, random: int, plot: bool=False, submission: bool=False):
+def export_stats(model, name: str, params: dict, num_runs: int, data: dict, random: int, plot: bool=False, submission: bool=False, output_precision: int=3):
     """
     data can be
     {
@@ -48,7 +48,7 @@ def export_stats(model, name: str, params: dict, num_runs: int, data: dict, rand
         f1 = 0
         prec = 0
         rec = 0
-        if data["test"] is None:
+        if "test" not in data:
             l, acc, auc, f1, prec, rec = model.evaluate(data["test_x"], data["test_y"])
             
 
@@ -59,30 +59,33 @@ def export_stats(model, name: str, params: dict, num_runs: int, data: dict, rand
             file.write("~~~~~RESULTS~~~~~\n\n")
             
             # print metrics
-            file.write(f"TIME: {total_time:.3f} seconds\n")
-            file.write(f"LOSS: {l:.3f}\n")
-            file.write(f"ACCURACY: {acc:.3f}\n")
-            file.write(f"AUC: {auc:.3f}\n")
+            file.write(f"TIME: {total_time:.{output_precision}f} seconds\n")
+            file.write(f"LOSS: {l:.{output_precision}f}\n")
+            file.write(f"ACCURACY: {acc:.{output_precision}f}\n")
+            file.write(f"AUC: {auc:.{output_precision}f}\n")
             file.write(f"F1: {f1}\n")
-            file.write(f"AVG F1: {np.average(f1):.3f}\n")
-            file.write(f"PRECISION: {prec:.3f}\n")
-            file.write(f"RECALL: {rec:.3f}\n")
+            file.write(f"AVG F1: {np.average(f1):.{output_precision}f}\n")
+            file.write(f"PRECISION: {prec:.{output_precision}f}\n")
+            file.write(f"RECALL: {rec:.{output_precision}f}\n")
             file.write(f"RANDOM STATE: {random}\n")
+            file.write(f"EPOCHS RUN: {len(history.history)}\n")
 
             file.write("\n~~~~~PARAMS~~~~~~\n\n")
             # print params
             for k,v in params.items():
                 file.write(f"{k}: {v}\n")
+            
+            
 
-            file.write("\n~~~~~HISTORY~~~~~\n\n")
-            # print history
-            for k,v in history.history.items():
-                file.write(f"{k}:\n")
-                for v_i in range(len(v)):
-                    file.write(f"{v_i}: {v[v_i]}\n")
-                file.write("\n")
+            # file.write("\n~~~~~HISTORY~~~~~\n\n")
+            # # print history
+            # for k,v in history.history.items():
+            #     file.write(f"{k}:\n")
+            #     for v_i in range(len(v)):
+            #         file.write(f"{v_i}: {v[v_i]}\n")
+            #     file.write("\n")
 
-        if data["test"] is not None:
+        if "test" in data:
             image_id = data["test"].index.to_numpy()+1
 
         if submission:
@@ -150,14 +153,14 @@ def export_stats(model, name: str, params: dict, num_runs: int, data: dict, rand
     avg_rec = t_rec/num_runs
     
     with open(f"{name}/{name}_AVG.txt", "w") as file:
-        file.write(f"AVG TIME: {avg_total_time:.3f}\n")
-        file.write(f"AVG LOSS: {avg_loss:.3f}\n")
-        file.write(f"AVG ACCURACY: {avg_acc:.3f}\n")
-        file.write(f"AVG AUC: {avg_auc:.3f}\n")
+        file.write(f"AVG TIME: {avg_total_time:.{output_precision}f}\n")
+        file.write(f"AVG LOSS: {avg_loss:.{output_precision}f}\n")
+        file.write(f"AVG ACCURACY: {avg_acc:.{output_precision}f}\n")
+        file.write(f"AVG AUC: {avg_auc:.{output_precision}f}\n")
         file.write(f"AVG F1: {avg_f1}\n")
-        file.write(f"AVG AVG F1: {np.average(avg_f1):.3f}\n")
-        file.write(f"AVG PRECISION: {avg_prec:.3f}\n")
-        file.write(f"AVG RECALL: {avg_rec:.3f}\n")
+        file.write(f"AVG AVG F1: {np.average(avg_f1):.{output_precision}f}\n")
+        file.write(f"AVG PRECISION: {avg_prec:.{output_precision}f}\n")
+        file.write(f"AVG RECALL: {avg_rec:.{output_precision}f}\n")
 
     return
 

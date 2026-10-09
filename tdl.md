@@ -34,6 +34,7 @@
               - NOTE: before switching models, make sure export_stats works with them
               - [x] touch base with HW to see if there's anything i need to adjust. DNN is good as it is for a submission, and I don't need to optimize unless I want to. Maybe do a test submission, then finish the report, then continue - 10/9/26 1146am
               - [ ] improve testing with a function to pass in params as dict and a function to build a model and test
+              - i cant think, i'll just test like normal
               - [ ] CNN
               - [ ] VGG
               - [ ] ResNet

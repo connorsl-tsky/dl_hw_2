@@ -5,3 +5,4 @@ sample_submission.csv
 __pycache__/*
 DNN_*/*
 TEST/*
+CNN_*/*

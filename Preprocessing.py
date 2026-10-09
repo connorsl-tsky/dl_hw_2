@@ -22,9 +22,9 @@ def train_test_val_split(data: pd.DataFrame, test_pct: float, val_pct: float, sh
 
 def train_val_split(data: pd.DataFrame, val_pct: float, shuffle: bool, random: int | None) -> tuple[pd.DataFrame, pd.DataFrame]:
     if random is not None:
-        train, val = sk.train_test_split(data, test_size=val_pct, shuffle=shuffle, random=random)
+        train, val = sk.train_test_split(data, test_size=val_pct, shuffle=shuffle, random_state=random)
         return train, val
-    train, val = sk.train_test_split(data, test_size=val_pct, shuffle=shuffle)
+    train, val = sk.train_test_split(data, test_size=val_pct, shuffle=shuffle, random_state=random)
     return train, val
 
 def reshape_for_conv(data: np.ndarray) -> np.ndarray:

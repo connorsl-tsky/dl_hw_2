@@ -30,11 +30,14 @@
              - NOTES: i think just final results to a text file, and a submission.csv so i don't do it at the last minute, plot auc-roc, do we want to keep the same random seed? for every test run? to test actual performance comparison? that's not a bad idea..., name to name test, multiple runs, in the code itself output averages and such, perhaps also to a file so we don't have to go into the testing files, perhaps sectioning off with directories, and in the name of the file we output the param being tested, and at the top of each file we output the total params so each model class should have a print function perhaps. well it should return a string
              - [x] develop - 10/7/26 130pm
         - [ ] param testing
-              - [ ] DNN
-              - NOTE: before switching models, make sure export_stats works with tehm
+              - [x] DNN - 10/8/26
+              - NOTE: before switching models, make sure export_stats works with them
+              - [x] touch base with HW to see if there's anything i need to adjust. DNN is good as it is for a submission, and I don't need to optimize unless I want to. Maybe do a test submission, then finish the report, then continue - 10/9/26 1146am
+              - [ ] improve testing with a function to pass in params as dict and a function to build a model and test
               - [ ] CNN
               - [ ] VGG
               - [ ] ResNet
+              model selection accuracy, f1, auc on learning rate, and best model's auc curve
 - [ ] submission
       - [ ] ensure 85% accuracy
       - [ ] finish questions

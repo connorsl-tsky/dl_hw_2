@@ -21,8 +21,7 @@ def export_stats(model, name: str, params: dict, num_runs: int, data: dict, rand
     }
     
     random is value of random state - just to remind me to have it the same, yeah?
-    """
-    """
+    
     what do we want to average
     time, l, acc, auc, f1, prec, rec, 
     """
@@ -37,11 +36,21 @@ def export_stats(model, name: str, params: dict, num_runs: int, data: dict, rand
 
     for i in range(num_runs):
         start_time = time.time()
+        # ah it's training the model num_runs times isn't it. without clearing it out. hm
+        # https://stackoverflow.com/questions/40496069/reset-weights-in-keras-layer can save and load weights to reset it
         history = model.train(data["train_x"], data["train_y"], data["val_x"], data["val_y"])
         end_time = time.time()
         total_time = end_time-start_time
 
-        l, acc, auc, f1, prec, rec = model.evaluate(data["test_x"], data["test_y"])
+        l = 0
+        acc = 0
+        auc = 0
+        f1 = 0
+        prec = 0
+        rec = 0
+        if data["test"] is None:
+            l, acc, auc, f1, prec, rec = model.evaluate(data["test_x"], data["test_y"])
+            
 
         # output results to file
         if not os.path.exists(name):
@@ -73,17 +82,23 @@ def export_stats(model, name: str, params: dict, num_runs: int, data: dict, rand
                     file.write(f"{v_i}: {v[v_i]}\n")
                 file.write("\n")
 
+        if data["test"] is not None:
+            image_id = data["test"].index.to_numpy()+1
+
         if submission:
             # submission.csv
-            yhat = np.array(model.model.predict(data["test_x"]))
+            # yhat = np.array(model.model.predict(data["test_x"]))
+            yhat = np.array(model.model.predict(data["test"]))
             encoder = skpre.OneHotEncoder()
             categories = np.array([0,1,2,3,4,5,6,7,8,9]).reshape(-1,1)
             encoder = encoder.fit(categories)
-            test_y = encoder.inverse_transform(data["test_y"]) # undo one-hot encoding
+            # test_y = encoder.inverse_transform(data["test_y"]) # undo one-hot encoding
             submission_yhat = encoder.inverse_transform(yhat)
             submission_yhat = submission_yhat.reshape(submission_yhat.shape[0])
-            test_y = test_y.reshape(test_y.shape[0])
-            outdf = pd.DataFrame({"ImageId": test_y, "Label": submission_yhat})
+            # test_y = test_y.reshape(test_y.shape[0])
+            # image_id = data["test"].index.to_numpy()+1
+            # outdf = pd.DataFrame({"ImageId": test_y, "Label": submission_yhat})
+            outdf = pd.DataFrame({"ImageId": image_id, "Label": submission_yhat})
             outdf.to_csv(f"{name}/submission_{i}.csv", index=False)
 
         if plot:

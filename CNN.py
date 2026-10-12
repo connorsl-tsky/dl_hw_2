@@ -303,9 +303,6 @@ def assign_params_nested(params: dict, key: str, i: int):
     """
     see build_model
     """
-    print(params)
-    print(key)
-    print(i)
     if isinstance(params[key], list):
         return copy.deepcopy(params[key][i][key])
     else:
@@ -366,17 +363,17 @@ def test_param():
             "regularizer": keras.regularizers.l2()
         },
         "filters": 16,
-        "kernel_size": [(4,4), (4,5), (5,4), (5,5), (6,6), (7,7)],
+        "kernel_size": (5,5),
         "strides": (1,1),
         "padding": "same",
-        "pool_size": (3,3),
+        "pool_size": [(6,6),(7,7),(8,8),(9,9)],
         "dense_units": 128,
         "batch_size": 1024,
         "epochs": 400,
         "patience": 15,
     }
 
-    test_key = "kernel_size"
+    test_key = "pool_size"
 
     for i in range(len(params[test_key])):
         cnn = build_model(params, i)
@@ -384,10 +381,10 @@ def test_param():
         export_stats(model=cnn, name=f"CNN_{test_key}_{params[test_key][i]}", params=output_params, num_runs=5, data=data, random=random, output_precision=5)
     return
 
-def clear_optimizer(optimizer: keras.Optimizer):
-    for var in optimizer.variables:
-        var.assign(tf.zeros_like(var))
-    return optimizer
+# def clear_optimizer(optimizer: keras.Optimizer):
+#     for var in optimizer.variables:
+#         var.assign(tf.zeros_like(var))
+#     return optimizer
 
 
 """
@@ -395,8 +392,11 @@ testing list
  - filters
  16 is best
  - kernel_size
+ 5,5 is the best
  - stride
+ 1,1
  - padding
+ same
  - pool size
  - dense units
  everything else should be pretty good

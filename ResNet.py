@@ -1,72 +1,19 @@
-"""
-import tensorflow as tf
-from tensorflow.keras.applications import ResNet50
-from tensorflow.keras.datasets import cifar10
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.utils import to_categorical
-
-// Load CIFAR-10 dataset
-(x_train, y_train), (x_test, y_test) = cifar10.load_data()
-
-// Preprocess the data
-x_train = x_train.astype('float32') / 255.0
-x_test = x_test.astype('float32') / 255.0
-
-// One-hot encode the labels
-y_train = to_categorical(y_train, 10)
-y_test = to_categorical(y_test, 10)
-
-base_model = ResNet50(weights='imagenet', 
-                      include_top=False, 
-                      input_shape=(32, 32, 3))
-
-// Freeze the base model
-base_model.trainable = False
-
-model = Sequential([
-    base_model,
-    GlobalAveragePooling2D(),
-    Dense(1024, activation='relu'),
-    Dense(10, activation='softmax')  
-])
-
-model.compile(optimizer=Adam(learning_rate=0.0001), 
-              loss='categorical_crossentropy', 
-              metrics=['accuracy'])
-
-model.fit(x_train, y_train, 
-          batch_size=64, 
-          epochs=10, 
-          validation_data=(x_test, y_test))
-
-test_loss, test_acc = model.evaluate(x_test, y_test)
-print(f"Test accuracy: {test_acc}")
-
-"""
-
-
-"""
-https://www.geeksforgeeks.org/computer-vision/vgg-net-architecture-explained/
-
-yeah just follow this guide. it's a special kind of CNN
-"""
-
 import keras
 import pandas as pd
 from Preprocessing import preprocess_test_val, reshape_for_conv
 import numpy as np
 import tensorflow as tf
 from keras.applications import ResNet50
+import copy
+from test import export_stats
 
 
 class ResNet:
-    def __init__(self, optimizer: keras.Optimizer, loss: keras.Loss, metrics: list[keras.Metric], batch: int, epochs: int, early_stop: bool, patience: int | None, lrs: bool, scheduler):
+    def __init__(self, optimizer: keras.Optimizer, loss: keras.Loss, metrics: list[keras.Metric], batch: int, epochs: int, early_stop: bool, patience: int | None, lrs: bool, scheduler, regularizer: keras.Regularizer):
         # member vars
         self.batch = batch
         self.epochs = epochs
+        self.regularizer = regularizer
 
         # callbacks
         self.callbacks = []
@@ -103,7 +50,7 @@ class ResNet:
         self.model.add(keras.layers.Conv2D(filters=3,kernel_size=(1,1),activation='relu'))
         self.model.add(self.base_model)
         self.model.add(keras.layers.GlobalAveragePooling2D())
-        self.model.add(keras.layers.Dense(1024, activation='relu'))
+        self.model.add(keras.layers.Dense(1024, activation='relu', kernel_regularizer=self.regularizer))
         self.model.add(keras.layers.Dense(10, activation='softmax'))
         return
     
@@ -127,73 +74,57 @@ class ResNet:
         
     
 
-
-if __name__ == "__main__":
-    data = pd.read_csv("train.csv")
-    print("PREPROCESSING")
-    train_x, train_y, val_x, val_y, test_x, test_y = preprocess_test_val(data, stdz=True, test_pct=.2, val_pct=.2, shuffle=True)
-
-    print("TO CATEGORICAL")
-    train_y = keras.utils.to_categorical(train_y, 10)
-    val_y = keras.utils.to_categorical(val_y, 10)
-    test_y = keras.utils.to_categorical(test_y, 10)
-
-    print("RESHAPE FOR CONV")
-    train_x = reshape_for_conv(train_x)
-    val_x = reshape_for_conv(val_x)
-    test_x = reshape_for_conv(test_x)
-
-    print("RESIZE IMAGE")
-    train_x = tf.image.resize(train_x, (32, 32)).numpy()
-    val_x   = tf.image.resize(val_x,   (32, 32)).numpy()
-    test_x  = tf.image.resize(test_x,  (32, 32)).numpy()
-
+def build_model(params: dict, i: int):
     """
-    argh
-    resnet requires 3 channels
-    is that becuase it's pretrained?
-    is it possible to resize the inputs to 3 channels?
-    does input layer do anything
-    nah 
-    
-    ah pretraining
-    add a conv layer before
-    adds probably several seconds of trianing but oh well
-    433pm
-    433pm takes about a minute
-    40 seconds
-    okay. better
+    params = {
+        "learning_rate": 0.001,
+        "optimizer": {
+            "name": adam,
+            "optimizer": keras.optimizers.Adam(
+                learning_rate = 0.001,
+            ),
+        },
+        "loss": {
+            "name": "cce",
+            "loss": keras.losses.CategoricalCrossentropy(),
+        },
+        "scheduler": {
+            "name": "no change",
+            "scheduler": scheduler,
+        },
+        "regularizer": {
+            "name": l2,
+            "regularizer": keras.regularizers.l2()
+        },
+        "filters": [4,8,16,32,64],
+        "kernel_size": (3,3),
+        "strides": (1,1),
+        "padding": "same",
+        "pool_size": (3,3),
+        "dense_units": 128,
+        "batch_size": 1024,
+        "epochs": 400,
+        "patience": 15,
+    }
     """
 
-    learning_rate = 0.1
-    beta_1 = 0.9
-    beta_2 = 0.999
-    adam = keras.optimizers.Adam(
-        learning_rate=learning_rate,
-        beta_1=beta_1,
-        beta_2=beta_2
-    )
+    optimizer = assign_params_nested(params, "optimizer", i)
+    loss = assign_params_nested(params, "loss", i)
+    batch = assign_param(params, "batch_size", i)
+    epochs = assign_param(params, "epochs", i)
+    patience = assign_param(params, "patience", i)
+    scheduler = assign_params_nested(params, "scheduler", i)
+    regularizer = assign_params_nested(params, "regularizer", i)
 
-    cce = keras.losses.CategoricalCrossentropy()
-
-    def scheduler(epoch, loss): 
-        return loss
-
-    l1 = keras.regularizers.l1(0.01)
-
-    batch=128
-    epochs=100
-    patience=15
-    ResNet = ResNet(
-        optimizer=adam,
-        loss=cce,
+    rn = ResNet(
+        optimizer=optimizer,
+        loss=loss,
         metrics=[
             keras.metrics.CategoricalAccuracy(),
             keras.metrics.AUC(),
             keras.metrics.F1Score(),
             keras.metrics.Precision(),
             keras.metrics.Recall(),
-            # keras.metrics.IoU(),
         ],
         batch=batch,
         epochs=epochs,
@@ -201,20 +132,101 @@ if __name__ == "__main__":
         patience=patience,
         lrs=True,
         scheduler=scheduler,
+        regularizer=regularizer
     )
-    
-    print("train x", train_x.shape)
-    print("train y", train_y.shape)
-    print("val x", val_x.shape)
-    print("val y", val_y.shape)
-    loss = ResNet.train(train_x, train_y, val_x, val_y)
-    print("LOSS", loss.history)
-    l, acc, auc, f1, prec, rec = ResNet.evaluate(test_x, test_y)
-    print("L", l)
-    print("ACC", acc)
-    print("AUC", auc)
-    print("f1", f1)
-    print("PREC", prec)
-    print("REC", rec)
-    # print("IOU", iou)
-    
+
+    return rn
+
+
+def assign_param(params: dict, key: str, i: int):
+    """ 
+    see build_model
+    """
+    if isinstance(params[key], list):
+        return params[key][i]
+    else:
+        return params[key]
+
+def assign_params_nested(params: dict, key: str, i: int):
+    """
+    see build_model
+    """
+    if isinstance(params[key], list):
+        return copy.deepcopy(params[key][i][key])
+    else:
+        return copy.deepcopy(params[key][key])
+
+def input_params_to_output_params(params: dict, i: int):
+    out = copy.deepcopy(params)
+    for k, v in out.items():
+        if isinstance(out[k], list):
+            out[k] = out[k][i]
+        if isinstance(out[k], dict):
+            out[k] = out[k]["name"]
+    return out
+
+
+def test_param():
+    data = pd.read_csv("train.csv")
+    random=1
+    train_x, train_y, val_x, val_y, test_x, test_y = preprocess_test_val(data, stdz=True, test_pct=.2, val_pct=.2, shuffle=True, random=random)
+
+    train_y = keras.utils.to_categorical(train_y, 10)
+    val_y = keras.utils.to_categorical(val_y, 10)
+    test_y = keras.utils.to_categorical(test_y, 10)
+
+    train_x = reshape_for_conv(train_x)
+    val_x = reshape_for_conv(val_x)
+    test_x = reshape_for_conv(test_x)
+
+    train_x = tf.image.resize(train_x, (32, 32)).numpy()
+    val_x   = tf.image.resize(val_x,   (32, 32)).numpy()
+    test_x  = tf.image.resize(test_x,  (32, 32)).numpy()
+
+    data = {
+        "train_x": train_x,
+        "train_y": train_y,
+        "val_x": val_x,
+        "val_y": val_y,
+        "test_x": test_x,
+        "test_y": test_y
+    }
+
+
+    params = {
+        "learning_rate": 0.001,
+        "optimizer": {
+            "name": "adam",
+            "optimizer": keras.optimizers.Adam(
+                learning_rate = 0.001,
+            ),
+        },
+        "loss": {
+            "name": "cce",
+            "loss": keras.losses.CategoricalCrossentropy(),
+        },
+        "scheduler": {
+            "name": "no change",
+            "scheduler": lambda epoch, loss : loss,
+        },
+        "regularizer": {
+            "name": "l2",
+            "regularizer": keras.regularizers.l2()
+        },
+        "batch_size": 1024,
+        "epochs": 400,
+        "patience": 15,
+    }
+
+    test_key = "kernel_size"
+
+    for i in range(len(params[test_key])):
+        rn = build_model(params, i)
+        output_params = input_params_to_output_params(params, i)
+        export_stats(model=rn, name=f"CNN_{test_key}_{params[test_key][i]}", params=output_params, num_runs=5, data=data, random=random, output_precision=5)
+    return
+
+
+
+if __name__ == "__main__":
+    test_param()

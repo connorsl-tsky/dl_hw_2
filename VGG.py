@@ -179,9 +179,9 @@ def assign_params_nested(params: dict, key: str, i: int):
     see build_model
     """
     if isinstance(params[key], list):
-        return params[key][i][key]
+        return copy.deepcopy(params[key][i][key])
     else:
-        return params[key][key]
+        return copy.deepcopy(params[key][key])
 
 def input_params_to_output_params(params: dict, i: int):
     out = copy.deepcopy(params)

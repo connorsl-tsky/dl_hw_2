@@ -387,7 +387,7 @@ def test_param():
     for i in range(len(params[test_key])):
         cnn = build_model(params, i)
         output_params = input_params_to_output_params(params, i)
-        export_stats(model=cnn, name=f"CNN_LR_{params[test_key][i]}", params=output_params, num_runs=5, data=data, random=random, output_precision=5, plot=True, submission=False, plot_auc=True)
+        export_stats(model=cnn, name=f"CNN_SUB_{params[test_key][i]}", params=output_params, num_runs=5, data=data, random=random, output_precision=5, plot=True, submission=False, plot_auc=True)
     return
 
 # def clear_optimizer(optimizer: keras.Optimizer):

@@ -50,7 +50,10 @@ def export_stats(model, name: str, params: dict, num_runs: int, data: dict, rand
         rec = 0
         if "test" not in data:
             l, acc, auc, f1, prec, rec = model.evaluate(data["test_x"], data["test_y"])
-            
+
+        print("SAVING MODEL")
+        model.model.save('weights.keras')
+        print("MODEL SAVED")
 
         # output results to file
         if not os.path.exists(name):

@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import sklearn.preprocessing as skpre
 
 
-def export_stats(model, name: str, params: dict, num_runs: int, data: dict, random: int, plot: bool=False, submission: bool=False, output_precision: int=3):
+def export_stats(model, name: str, params: dict, num_runs: int, data: dict, random: int, plot: bool=False, submission: bool=False, output_precision: int=3, plot_auc: bool=False):
     """
     data can be
     {
@@ -75,8 +75,6 @@ def export_stats(model, name: str, params: dict, num_runs: int, data: dict, rand
             for k,v in params.items():
                 file.write(f"{k}: {v}\n")
             
-            
-
             # file.write("\n~~~~~HISTORY~~~~~\n\n")
             # # print history
             # for k,v in history.history.items():
@@ -91,7 +89,7 @@ def export_stats(model, name: str, params: dict, num_runs: int, data: dict, rand
         if submission:
             # submission.csv
             # yhat = np.array(model.model.predict(data["test_x"]))
-            yhat = np.array(model.model.predict(data["test"]))
+            yhat = np.array(model.model.predict(data["test_np"]))
             encoder = skpre.OneHotEncoder()
             categories = np.array([0,1,2,3,4,5,6,7,8,9]).reshape(-1,1)
             encoder = encoder.fit(categories)
@@ -105,35 +103,54 @@ def export_stats(model, name: str, params: dict, num_runs: int, data: dict, rand
             outdf.to_csv(f"{name}/submission_{i}.csv", index=False)
 
         if plot:
-            # plots
-            fig, ax = plt.subplots(1, 2)
+            if not submission:
+                yhat = np.array(model.model.predict(data["test_x"]))
 
-            # plot auc-roc curve
-            display = RocCurveDisplay.from_predictions(
-                    data["test_y"].ravel(),
-                    yhat.ravel(),
-                    name="ROC",
-                    curve_kwargs=dict(color="darkorange"),
-                    plot_chance_level=True,
-                    despine=True,
-                    ax=ax[0]
+            # plots
+            if plot_auc:
+                fig, ax = plt.subplots(1, 3)
+            else:
+                fig, ax = plt.subplots(1, 2)
+
+            if plot_auc:
+                # plot auc-roc curve
+                display = RocCurveDisplay.from_predictions(
+                        data["test_y"].ravel(),
+                        yhat.ravel(),
+                        name="ROC",
+                        curve_kwargs=dict(color="darkorange"),
+                        plot_chance_level=True,
+                        despine=True,
+                        ax=ax[0]
+                    )
+                _ = display.ax_.set(
+                    xlabel="False Positive Rate",
+                    ylabel="True Positive Rate",
+                    title="AUC-ROC Curve",
                 )
-            _ = display.ax_.set(
-                xlabel="False Positive Rate",
-                ylabel="True Positive Rate",
-                title="AUC-ROC Curve",
-            )
+
+            loss_index = 1 if plot_auc else 0
+            acc_index = 2 if plot_auc else 1
 
             loss = history.history['loss']
             val_loss = history.history['val_loss']
             epochs = range(1, len(loss)+1)
-            ax[1].plot(epochs, loss, label=f"{name} {i} Loss")
-            ax[1].plot(epochs, val_loss, label=f"{name} {i} Validation Loss")
-            ax[1].set_title("LOSS")
-            ax[1].set_xlabel('Epochs')
-            ax[1].set_ylabel('Loss')
-            ax[1].legend()
-
+            ax[loss_index].plot(epochs, loss, label=f"{name} Loss")
+            ax[loss_index].plot(epochs, val_loss, label=f"{name} Validation Loss")
+            ax[loss_index].set_title("Loss History Plot")
+            ax[loss_index].set_xlabel('Epochs')
+            ax[loss_index].set_ylabel('Loss')
+            ax[loss_index].legend()
+            
+            cat_acc = history.history['categorical_accuracy']
+            val_acc = history.history['val_categorical_accuracy']
+            ax[acc_index].plot(epochs, cat_acc, label=f"{name} Accuracy")
+            ax[acc_index].plot(epochs, val_acc, label=f"{name} Validation Accuracy")
+            ax[acc_index].set_title("Accuracy History Plot")
+            ax[acc_index].set_xlabel('Epochs')
+            ax[acc_index].set_ylabel('Accuracy')
+            ax[acc_index].legend()
+            
             plt.show()
 
         t_total_time += total_time

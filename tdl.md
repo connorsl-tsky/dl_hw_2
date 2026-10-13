@@ -6,7 +6,7 @@
              - [x] check notes first - 10/4/26 644pm 
              - [x] find other online - 10/4/26 726pm
        - [x] answer the questions in word doc - 10/4/26 744pm
- - [ ] models
+ - [x] models - 10/12/26
        - [x] virtual environment and download np, pd, tensorflow, and matplotlib - 10/4/26 750pm
              - [x] and record versions - ^
        - [x] design the models, isolate the hyperparameters (including loss function)
@@ -29,14 +29,14 @@
              - [x] design
              - NOTES: i think just final results to a text file, and a submission.csv so i don't do it at the last minute, plot auc-roc, do we want to keep the same random seed? for every test run? to test actual performance comparison? that's not a bad idea..., name to name test, multiple runs, in the code itself output averages and such, perhaps also to a file so we don't have to go into the testing files, perhaps sectioning off with directories, and in the name of the file we output the param being tested, and at the top of each file we output the total params so each model class should have a print function perhaps. well it should return a string
              - [x] develop - 10/7/26 130pm
-        - [ ] param testing
+        - [x] param testing - 10/12/26
               - [x] DNN - 10/8/26
               - NOTE: before switching models, make sure export_stats works with them
               - [x] touch base with HW to see if there's anything i need to adjust. DNN is good as it is for a submission, and I don't need to optimize unless I want to. Maybe do a test submission, then finish the report, then continue - 10/9/26 1146am
               - [x] improve testing with a function to pass in params as dict and a function to build a model and test - 10/9/26
-              - [ ] CNN
-              - [ ] VGG
-              - [ ] ResNet
+              - [x] CNN - 10/12/26 1028am
+              - [x] VGG
+              - [x] ResNet
               model selection accuracy, f1, auc on learning rate, and best model's auc curve
 - [ ] submission
       - [ ] ensure 85% accuracy
@@ -47,3 +47,9 @@
 
 
 
+DNN 0.1 - 2
+dnn 0.01 - 4
+dl 0.001 - 4
+cnn 0.1 - all same used 4
+cnn 0.01 - all same used 4
+cnn 0.001 - used 2

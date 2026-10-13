@@ -7,7 +7,7 @@ from sklearn.metrics import RocCurveDisplay
 import matplotlib.pyplot as plt
 from test import export_stats
 import math
-
+import copy
 
 class DNN:
     def __init__(self, layers: list[int], activation: str, optimizer: keras.Optimizer, loss: keras.Loss, metrics: list[keras.Metric], batch: int, epochs: int, early_stop: bool, patience: int | None, regularizer: keras.Regularizer, lrs: bool, scheduler):
@@ -653,6 +653,185 @@ def final_test():
     export_stats(model=dnn, name=f"DNN_FINAL", params=params, num_runs=5, data=data, random=random_state, submission=True)
     return 
 
+
+
+def build_model(params: dict, i: int):
+    """
+    params = {
+            "learning_rate": 0.001,
+            "optimizer": {
+                "name": "adam",
+                "optimizer": keras.optimizers.Adam(
+                    learning_rate = 0.001,
+                ),
+            },
+            "loss": {
+                "name": "cce",
+                "loss": keras.losses.CategoricalCrossentropy(),
+            },
+            "scheduler": {
+                "name": "no change",
+                "scheduler": lambda epoch, loss : loss,
+            },
+            "regularizer": {
+                "name": "l2",
+                "regularizer": keras.regularizers.l2()
+            },
+            "layers": [64],
+            "batch_size": 1024,
+            "activation": "relu",
+            "epochs": 400,
+            "patience": 15,
+        }
+    """
+
+    layers = assign_param(params, "layers", i)
+    activation = assign_param(params, "activation", i)
+    optimizer = assign_params_nested(params, "optimizer", i)
+    loss = assign_params_nested(params, "loss", i)
+    batch = assign_param(params, "batch_size", i)
+    epochs = assign_param(params, "epochs", i)
+    patience = assign_param(params, "patience", i)
+    scheduler = assign_params_nested(params, "scheduler", i)
+    regularizer = assign_params_nested(params, "regularizer", i)
+
+    dnn = DNN(
+        layers=layers,
+        activation=activation,
+        optimizer=optimizer,
+        loss=loss,
+        metrics=[
+            keras.metrics.CategoricalAccuracy(),
+            keras.metrics.AUC(),
+            keras.metrics.F1Score(),
+            keras.metrics.Precision(),
+            keras.metrics.Recall(),
+            # keras.metrics.IoU(),
+        ],
+        batch=batch,
+        epochs=epochs,
+        early_stop=True,
+        patience=patience,
+        lrs=True,
+        scheduler=scheduler,
+        regularizer=regularizer
+    )
+
+    return dnn
+
+
+def assign_param(params: dict, key: str, i: int):
+    """ 
+    see build_model
+    """
+    if isinstance(params[key], list) and key != "layers":
+        return params[key][i]
+    else:
+        return params[key]
+
+def assign_params_nested(params: dict, key: str, i: int):
+    """
+    see build_model
+    """
+    if isinstance(params[key], list) and key != "layers":
+        return copy.deepcopy(params[key][i][key])
+    else:
+        return copy.deepcopy(params[key][key])
+
+def input_params_to_output_params(params: dict, i: int):
+    out = copy.deepcopy(params)
+    for k, v in out.items():
+        if isinstance(out[k], list) and k != "layers":
+            out[k] = out[k][i]
+        if isinstance(out[k], dict):
+            out[k] = out[k]["name"]
+    return out
+
+
+def test_param():
+    data = pd.read_csv("train.csv")
+    random=1
+    train_x, train_y, val_x, val_y, test_x, test_y = preprocess_test_val(data, stdz=True, test_pct=.2, val_pct=.2, shuffle=True, random=random)
+
+    train_y = keras.utils.to_categorical(train_y, 10)
+    val_y = keras.utils.to_categorical(val_y, 10)
+    test_y = keras.utils.to_categorical(test_y, 10)
+
+    data = {
+        "train_x": train_x,
+        "train_y": train_y,
+        "val_x": val_x,
+        "val_y": val_y,
+        "test_x": test_x,
+        "test_y": test_y
+    }
+
+    params = {
+        "learning_rate": 0,
+        "optimizer": [
+            {
+                "name": "adam 0.1",
+                "optimizer": keras.optimizers.Adam(
+                    learning_rate = 0.1,
+                ),
+            }, 
+            {
+                "name": "adam 0.01",
+                "optimizer": keras.optimizers.Adam(
+                    learning_rate = 0.01,
+                ),
+            }, 
+            {
+                "name": "adam 0.001",
+                "optimizer": keras.optimizers.Adam(
+                    learning_rate = 0.001,
+                ),
+            }
+        ],
+        "loss": {
+            "name": "cce",
+            "loss": keras.losses.CategoricalCrossentropy(),
+        },
+        "scheduler": {
+            "name": "no change",
+            "scheduler": lambda epoch, loss : loss,
+        },
+        "regularizer": {
+            "name": "l2",
+            "regularizer": keras.regularizers.l2()
+        },
+        "layers": [64],
+        "batch_size": 1024,
+        "activation": "relu",
+        "epochs": 400,
+        "patience": 15,
+    }
+
+    test_key = "optimizer"
+
+    for i in range(len(params[test_key])):
+        cnn = build_model(params, i)
+        output_params = input_params_to_output_params(params, i)
+        export_stats(model=cnn, name=f"DNN_{test_key}_{params[test_key][i]['name']}", params=output_params, num_runs=5, data=data, random=random, output_precision=5, plot=True)
+    return
+
+
+if __name__ == "__main__":
+    test_param()
+
+
+
+"""
+wrapping up
+run for LR = 0.1, 0.01, 0.001
+for each model - best run of each LR
+    plot loss, acc
+    record acc, f1, auc
+
+and best model AUC-ROC curve
+
+"""
+
 """
 testing list
 - learning rate
@@ -709,5 +888,3 @@ testing list
 """
 
 
-if __name__ == "__main__":
-    final_test()

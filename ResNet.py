@@ -194,13 +194,27 @@ def test_param():
 
 
     params = {
-        "learning_rate": 0.001,
-        "optimizer": {
-            "name": "adam",
-            "optimizer": keras.optimizers.Adam(
-                learning_rate = 0.001,
-            ),
-        },
+        "learning_rate": 0,
+        "optimizer": [
+            {
+                "name": "adam 0.1",
+                "optimizer": keras.optimizers.Adam(
+                    learning_rate = 0.1,
+                ),
+            },
+            {
+                "name": "adam 0.01",
+                "optimizer": keras.optimizers.Adam(
+                    learning_rate = 0.01,
+                ),
+            },
+            {
+                "name": "adam 0.001",
+                "optimizer": keras.optimizers.Adam(
+                    learning_rate = 0.001,
+                ),
+            }
+        ],
         "loss": {
             "name": "cce",
             "loss": keras.losses.CategoricalCrossentropy(),
@@ -214,16 +228,16 @@ def test_param():
             "regularizer": keras.regularizers.l2()
         },
         "batch_size": 1024,
-        "epochs": 400,
-        "patience": 15,
+        "epochs": 25,
+        "patience": 5,
     }
 
-    test_key = "kernel_size"
+    test_key = "optimizer"
 
     for i in range(len(params[test_key])):
         rn = build_model(params, i)
         output_params = input_params_to_output_params(params, i)
-        export_stats(model=rn, name=f"CNN_{test_key}_{params[test_key][i]}", params=output_params, num_runs=5, data=data, random=random, output_precision=5)
+        export_stats(model=rn, name=f"RN_{test_key}_{params[test_key][i]['name']}", params=output_params, num_runs=1, data=data, random=random, output_precision=5, plot=True)
     return
 
 

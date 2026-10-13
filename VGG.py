@@ -1,9 +1,3 @@
-"""
-https://www.geeksforgeeks.org/computer-vision/vgg-net-architecture-explained/
-
-yeah just follow this guide. it's a special kind of CNN
-"""
-
 import keras
 import pandas as pd
 from Preprocessing import preprocess_test_val, reshape_for_conv
@@ -80,9 +74,9 @@ class VGG:
         self.model.add(keras.layers.Flatten())
         self.model.add(keras.layers.Dense(units=4096,activation='relu', kernel_regularizer=self.regularizer))
         self.model.add(keras.layers.Dense(units=4096,activation='relu', kernel_regularizer=self.regularizer))
-        self.model.add(keras.layers.Dense(units=1000,activation='softmax',))
+        self.model.add(keras.layers.Dense(units=1000,activation='relu',))
         
-        self.model.add(keras.layers.Dense(units=10)) # 10 for the digits
+        self.model.add(keras.layers.Dense(units=10, activation="softmax"))
         return
     
     def train(self, train_x: np.ndarray, train_y, val_x: np.ndarray, val_y):
@@ -220,13 +214,27 @@ def test_param():
     }
 
     params = {
-        "learning_rate": 0.001,
-        "optimizer": {
-            "name": "adam",
-            "optimizer": keras.optimizers.Adam(
-                learning_rate = 0.001,
-            ),
-        },
+        "learning_rate": 0,
+        "optimizer": [
+            {
+                "name": "adam 0.1",
+                "optimizer": keras.optimizers.Adam(
+                    learning_rate = 0.1,
+                ),
+            },
+            {
+                "name": "adam 0.01",
+                "optimizer": keras.optimizers.Adam(
+                    learning_rate = 0.01,
+                ),
+            },
+            {
+                "name": "adam 0.001",
+                "optimizer": keras.optimizers.Adam(
+                    learning_rate = 0.001,
+                ),
+            }
+        ],
         "loss": {
             "name": "cce",
             "loss": keras.losses.CategoricalCrossentropy(),
@@ -240,19 +248,24 @@ def test_param():
             "regularizer": keras.regularizers.l2()
         },
         "batch_size": 1024,
-        "epochs": 400,
-        "patience": 15,
+        "epochs": 25,
+        "patience": 5,
     }
 
     
-    test_key = "filters"
+    test_key = "optimizer"
 
     for i in range(len(params[test_key])):
-        cnn = build_model(params)
-        output_params = input_params_to_output_params(params)
-        export_stats(model=cnn, name=f"CNN_FILTER_{params[test_key][i]}", params=output_params, num_runs=5, data=data, random=random, output_precision=5)
+        vgg = build_model(params, i)
+        output_params = input_params_to_output_params(params, i)
+        export_stats(model=vgg, name=f"VGG_{test_key}_{params[test_key][i]['name']}", params=output_params, num_runs=1, data=data, random=random, output_precision=5, plot=True)
     return
 
 
+"""
+have to do 1 run per - extra run crap is no good bro
+and limit epochs heavily, i gotta get this assignment done
+"""
+
 if __name__ == "__main__":
-    print("hello world")
+    test_param()

@@ -1,6 +1,6 @@
 import keras
 import pandas as pd
-from Preprocessing import preprocess_test_val, reshape_for_conv
+from Preprocessing import preprocess_test_val, reshape_for_conv, preprocess_val, standardize
 import numpy as np
 from test import export_stats
 import copy
@@ -322,6 +322,12 @@ def test_param():
     data = pd.read_csv("train.csv")
     random=1
     train_x, train_y, val_x, val_y, test_x, test_y = preprocess_test_val(data, stdz=True, test_pct=.2, val_pct=.2, shuffle=True, random=random)
+    # data = pd.read_csv("train.csv")
+    # random = 1
+    # train_x, train_y, val_x, val_y = preprocess_val(data, stdz=True, val_pct=.2, shuffle=True, random=random)
+
+    # test = pd.read_csv("test.csv")
+    # test = standardize(test)
 
     train_y = keras.utils.to_categorical(train_y, 10)
     val_y = keras.utils.to_categorical(val_y, 10)
@@ -330,6 +336,7 @@ def test_param():
     train_x = reshape_for_conv(train_x)
     val_x = reshape_for_conv(val_x)
     test_x = reshape_for_conv(test_x)
+    # test_np = reshape_for_conv(test)
 
     data = {
         "train_x": train_x,
@@ -338,12 +345,14 @@ def test_param():
         "val_y": val_y,
         "test_x": test_x,
         "test_y": test_y
+        # "test": test,
+        # "test_np": test_np
     }
 
     
 
     params = {
-        "learning_rate": 0.001,
+        "learning_rate": [0.001],
         "optimizer": {
             "name": "adam",
             "optimizer": keras.optimizers.Adam(
@@ -366,19 +375,19 @@ def test_param():
         "kernel_size": (5,5),
         "strides": (1,1),
         "padding": "same",
-        "pool_size": [(6,6),(7,7),(8,8),(9,9)],
-        "dense_units": 128,
+        "pool_size": (13,13),
+        "dense_units": 64,
         "batch_size": 1024,
         "epochs": 400,
         "patience": 15,
     }
 
-    test_key = "pool_size"
+    test_key = "learning_rate"
 
     for i in range(len(params[test_key])):
         cnn = build_model(params, i)
         output_params = input_params_to_output_params(params, i)
-        export_stats(model=cnn, name=f"CNN_{test_key}_{params[test_key][i]}", params=output_params, num_runs=5, data=data, random=random, output_precision=5)
+        export_stats(model=cnn, name=f"CNN_LR_{params[test_key][i]}", params=output_params, num_runs=5, data=data, random=random, output_precision=5, plot=True, submission=False, plot_auc=True)
     return
 
 # def clear_optimizer(optimizer: keras.Optimizer):
@@ -398,7 +407,9 @@ testing list
  - padding
  same
  - pool size
+ 13, 13
  - dense units
+ 64 - gamble
  everything else should be pretty good
 """
 
